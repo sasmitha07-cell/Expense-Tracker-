@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interest Calculator</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <style>
+      /* Interest Calculator Styling */
+      .interest-calculator {
+        background: #ffffff;
+        margin: 50px auto;
+        padding: 30px;
+        width: 400px;
+        border-radius: 15px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .interest-calculator h2 {
+        text-align: center;
+        color: #219653;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+
+      .bcb {
+        width: 100%;
+        padding: 12px;
+        background-color: #219653;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .bcb button:hover {
+        background-color: #1a7a44;
+      }
+
+      .result {
+        margin-top: 20px;
+        text-align: center;
+        background: #eafaf1;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <!-- Interest Calculator Section -->
+      <div class="interest-calculator">
+        <h2>Interest Calculator</h2>
+
+        <label>Principal Amount (₹)</label>
+        <input
+          type="number"
+          id="principal"
+          placeholder="Enter principal amount"
+        />
+
+        <label>Rate of Interest (% per year)</label>
+        <input
+          type="number"
+          id="rate"
+          placeholder="Enter interest rate"
+          step="0.01"
+        />
+
+        <label>Time (Years)</label>
+        <input type="number" id="time" placeholder="Enter time in years" />
+
+        <label>Interest Type</label>
+        <select id="interestType">
+          <option value="simple">Simple Interest</option>
+          <option value="compound">Compound Interest</option>
+        </select>
+
+        <!-- Compounding Frequency (for CI only) -->
+        <label id="compoundLabel" style="display: none"
+          >Compounding Frequency</label
+        >
+        <select id="frequency" style="display: none">
+          <option value="1">Annually</option>
+          <option value="2">Semi-Annually</option>
+          <option value="4">Quarterly</option>
+          <option value="12">Monthly</option>
+          <option value="365">Daily</option>
+        </select>
+
+        <button class="bcb" onclick="calculateInterest()">
+          Calculate Interest
+        </button>
+
+        <div class="result" id="result">
+          <p>Interest: ₹0</p>
+          <p>Total Amount: ₹0</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      const typeSelect = document.getElementById("interestType");
+      const freqLabel = document.getElementById("compoundLabel");
+      const freqSelect = document.getElementById("frequency");
+
+      // Show frequency option only for compound interest
+      typeSelect.addEventListener("change", () => {
+        if (typeSelect.value === "compound") {
+          freqLabel.style.display = "block";
+          freqSelect.style.display = "block";
+        } else {
+          freqLabel.style.display = "none";
+          freqSelect.style.display = "none";
+        }
+      });
+
+      function calculateInterest() {
+        const P = parseFloat(document.getElementById("principal").value);
+        const R = parseFloat(document.getElementById("rate").value);
+        const T = parseFloat(document.getElementById("time").value);
+        const type = document.getElementById("interestType").value;
+        const n = parseInt(document.getElementById("frequency").value);
+
+        if (isNaN(P) || isNaN(R) || isNaN(T) || P <= 0 || R <= 0 || T <= 0) {
+          alert("⚠️ Please enter valid positive numbers for all fields.");
+          return;
+        }
+
+        let interest = 0,
+          total = 0;
+
+        if (type === "simple") {
+          // Simple Interest
+          interest = (P * R * T) / 100;
+          total = P + interest;
+        } else if (type === "compound") {
+          // ✅ Correct Compound Interest Formula
+          total = P * Math.pow(1 + R / (n * 100), n * T);
+          interest = total - P;
+        }
+
+        document.getElementById("result").innerHTML = `
+          <p><strong>Interest:</strong> ₹${interest.toFixed(2)}</p>
+          <p><strong>Total Amount:</strong> ₹${total.toFixed(2)}</p>
+        `;
+      }
+    </script>
+  </body>
+</html>

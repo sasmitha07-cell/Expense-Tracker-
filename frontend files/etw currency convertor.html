@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Currency Converter - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Poppins", sans-serif;
+        background-color: #f4f6f7;
+        display: flex;
+      }
+
+      .main {
+        flex-grow: 1;
+        margin-left: 250px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .currency-converter {
+        background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        width: 350px;
+        text-align: center;
+      }
+
+      h2 {
+        color: #101010;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin: 12px 0 6px;
+        font-weight: 600;
+        color: #333;
+        text-align: left;
+      }
+
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+        margin-top: 5px;
+        box-sizing: border-box;
+      }
+
+      .bcb {
+        background-color: #219653;
+        color: white;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 18px;
+        transition: background-color 0.3s;
+      }
+
+      .bcb:hover {
+        background-color: #197c44;
+      }
+
+      .result {
+        margin-top: 20px;
+        background: #eafaf1;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2e7d32;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>💰 Tracker</h2>
+      <ul>
+        <li><a href="etw home page.html">🏠 Dashboard</a></li>
+        <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+        <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+        <li><a href="etw calculator.html">🧮 Calculator</a></li>
+        <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+        <li><a href="etw pay page.html">💳 Pay Later</a></li>
+        <li><a href="etw charts page.html">📊 Charts</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Section -->
+    <div class="main">
+      <div class="topbar">
+        <button onclick="window.location.href='etw adder page.html'">➕</button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="currency-converter">
+        <h2>Currency Converter</h2>
+        <label for="amount">Amount</label>
+        <input
+          id="amount"
+          type="number"
+          min="0"
+          step="any"
+          placeholder="Enter amount"
+        />
+
+        <label for="fromCurrency">From</label>
+        <select id="fromCurrency"></select>
+
+        <label for="toCurrency">To</label>
+        <select id="toCurrency"></select>
+
+        <button class="bcb" onclick="convertCurrency()">Convert</button>
+        <div class="result" id="result">Converted Amount: 0</div>
+      </div>
+    </div>
+
+    <script>
+      const currencies = ["INR", "USD", "EUR", "GBP", "AUD", "CAD", "JPY"];
+      let currencyRates = {}; // Will store live rates
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      const fromCurrency = document.getElementById("fromCurrency");
+      const toCurrency = document.getElementById("toCurrency");
+      const resultBox = document.getElementById("result");
+
+      // Populate dropdowns
+      currencies.forEach((currency) => {
+        const opt1 = document.createElement("option");
+        const opt2 = document.createElement("option");
+        opt1.value = opt2.value = currency;
+        opt1.textContent = opt2.textContent = currency;
+        fromCurrency.appendChild(opt1);
+        toCurrency.appendChild(opt2);
+      });
+
+      fromCurrency.value = "INR";
+      toCurrency.value = "USD";
+
+      // ✅ Fetch live exchange rates
+      async function fetchRates() {
+        try {
+          const response = await fetch(
+            "https://api.exchangerate.host/latest?base=INR"
+          );
+          const data = await response.json();
+
+          if (data && data.rates) {
+            currencyRates = data.rates;
+            console.log("Live rates loaded:", currencyRates);
+          } else {
+            throw new Error("Invalid API response");
+          }
+        } catch (error) {
+          console.error("Failed to fetch live rates:", error);
+          alert(
+            "⚠️ Could not load live currency rates. Please check your internet connection."
+          );
+          // fallback default rates
+          currencyRates = {
+            INR: 1,
+            USD: 0.012,
+            EUR: 0.011,
+            GBP: 0.0095,
+            AUD: 0.018,
+            CAD: 0.016,
+            JPY: 1.85,
+          };
+        }
+      }
+
+      // ✅ Convert function
+      function convertCurrency() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const from = fromCurrency.value;
+        const to = toCurrency.value;
+
+        if (isNaN(amount) || amount <= 0) {
+          alert("⚠️ Please enter a valid amount.");
+          return;
+        }
+
+        if (!currencyRates[from] || !currencyRates[to]) {
+          alert("⚠️ Currency rates not loaded yet. Please wait a few seconds.");
+          return;
+        }
+
+        const inINR = amount / currencyRates[from]; // convert to INR
+        const converted = inINR * currencyRates[to]; // then convert to target
+
+        resultBox.textContent = `Converted Amount: ${converted.toFixed(
+          2
+        )} ${to}`;
+      }
+
+      // Fetch rates when the page loads
+      fetchRates();
+    </script>
+  </body>
+</html>

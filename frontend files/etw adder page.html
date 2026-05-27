@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Expense - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+
+    <style>
+      body {
+        background-color: #f6f8fa;
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+      }
+
+      .content {
+        padding: 30px;
+        display: flex;
+        gap: 60px;
+      }
+
+      h1,
+      h2 {
+        color: #222;
+      }
+
+      .expense-form {
+        background: #ffffff;
+        margin-top: 10px;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        width: 400px;
+      }
+
+      .expense-form label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .expense-form input,
+      .expense-form select,
+      .expense-form textarea {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        transition: 0.2s;
+      }
+
+      .expense-form input:focus,
+      .expense-form select:focus,
+      .expense-form textarea:focus {
+        border-color: #007bff;
+        outline: none;
+        box-shadow: 0 0 4px rgba(0, 123, 255, 0.2);
+      }
+
+      .expense-form button {
+        background: #219653;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        font-weight: 600;
+        transition: 0.2s;
+      }
+
+      .expense-form button:hover {
+        background: #1a7a44;
+      }
+
+      .expense-list {
+        flex: 1;
+      }
+
+      .expense-list h2 {
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .total-amount {
+        background: #1a7a44;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .expense-card {
+        background: #fff;
+        padding: 18px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      .expense-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 6px 24px rgba(44, 62, 80, 0.12);
+      }
+
+      .expense-details {
+        flex: 1;
+      }
+
+      .expense-title {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 3px;
+      }
+
+      .expense-meta {
+        font-size: 13px;
+        color: #666;
+      }
+
+      .expense-amount {
+        font-weight: bold;
+        color: #2e7d32;
+        font-size: 18px;
+        text-align: right;
+      }
+
+      .category-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+        margin-left: 8px;
+      }
+
+      .Food {
+        background-color: #ff7043;
+      }
+      .Travel {
+        background-color: #29b6f6;
+      }
+      .Bills {
+        background-color: #ab47bc;
+      }
+      .Shopping {
+        background-color: #66bb6a;
+      }
+      .Others {
+        background-color: #9e9e9e;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #777;
+        font-style: italic;
+        margin-top: 50px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li>
+        <a href="etw adder page.html" class="active">⚡ Quick Add Expense</a>
+      </li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="content">
+        <!-- Add Expense Form -->
+        <div>
+          <h1>Add New Expense</h1>
+          <form class="expense-form" id="addExpenseForm">
+            <label for="title">Expense Title</label>
+            <input
+              type="text"
+              id="title"
+              placeholder="e.g. Grocery shopping"
+              required
+            />
+
+            <label for="amount">Amount (₹)</label>
+            <input
+              type="number"
+              id="amount"
+              placeholder="Enter amount"
+              required
+            />
+
+            <label for="date">Date</label>
+            <input type="date" id="date" required />
+
+            <label for="category">Category</label>
+            <select id="category">
+              <option value="Food">Food</option>
+              <option value="Travel">Travel</option>
+              <option value="Bills">Bills</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Others">Others</option>
+            </select>
+
+            <label for="notes">Notes</label>
+            <textarea id="notes" rows="3" placeholder="Optional"></textarea>
+
+            <button type="submit">Add Expense</button>
+          </form>
+        </div>
+
+        <!-- Expense List -->
+        <div class="expense-list">
+          <h2>
+            Added Expenses
+            <span class="total-amount" id="total">Total: ₹0</span>
+          </h2>
+          <div id="expenses" class="empty-state">No expenses added yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const userId = localStorage.getItem("userId");
+
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+
+      if (!userId) {
+        alert("Please login first!");
+        window.location.href = "index.html";
+      }
+
+      // Add expense to DB
+      document
+        .getElementById("addExpenseForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const expense = {
+            user_id: userId,
+            title: document.getElementById("title").value,
+            amount: document.getElementById("amount").value,
+            date: document.getElementById("date").value,
+            category: document.getElementById("category").value,
+            notes: document.getElementById("notes").value,
+          };
+
+          try {
+            const res = await fetch("http://localhost:5000/add-expense", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(expense),
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+              e.target.reset();
+              getExpenses();
+            } else {
+              alert("❌ Error: " + (data.message || "Failed to add expense."));
+            }
+          } catch (err) {
+            alert("⚠️ Server error. Check if backend is running.");
+            console.error(err);
+          }
+        });
+
+      // Fetch and display expenses
+      async function getExpenses() {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/get-expenses/${userId}`
+          );
+          const expenses = await res.json();
+
+          const container = document.getElementById("expenses");
+          container.innerHTML = "";
+
+          if (expenses.length === 0) {
+            container.innerHTML = `<p class="empty-state">No expenses added yet.</p>`;
+            document.getElementById("total").innerText = "Total: ₹0";
+            return;
+          }
+
+          // Sort by date (latest first)
+          const sortedExpenses = expenses.sort(
+            (a, b) => new Date(b.date) - new Date(a.date)
+          );
+
+          let total = 0;
+
+          sortedExpenses.forEach((exp) => {
+            total += parseFloat(exp.amount);
+
+            const card = document.createElement("div");
+            card.classList.add("expense-card");
+
+            card.innerHTML = `
+              <div class="expense-details">
+                <div class="expense-title">${exp.title}
+                  <span class="category-badge ${exp.category}">${
+              exp.category
+            }</span>
+                </div>
+                <div class="expense-meta">${exp.date} | ${
+              exp.notes || "No notes"
+            }</div>
+              </div>
+              <div class="expense-amount">₹${exp.amount}</div>
+            `;
+
+            container.appendChild(card);
+          });
+
+          document.getElementById("total").innerText = `Total: ₹${total.toFixed(
+            2
+          )}`;
+        } catch (err) {
+          console.error("Error fetching expenses:", err);
+          document.getElementById(
+            "expenses"
+          ).innerHTML = `<p class="empty-state">⚠️ Unable to load expenses.</p>`;
+        }
+      }
+
+      // Load expenses on page load
+      getExpenses();
+    </script>
+  </body>
+</html>

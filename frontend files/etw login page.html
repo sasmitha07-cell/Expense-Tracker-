@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker | Smart Budget Management</title>
+    <style>
+      :root {
+        --primary: #2e7d32;
+        --primary-dark: #1b5e20;
+        --accent: #66bb6a;
+        --light: #f9f9f9;
+        --gray: #555;
+        --shadow: rgba(0, 0, 0, 0.15);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+        color: #222;
+        line-height: 1.6;
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* ===== Navbar ===== */
+      nav {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        box-shadow: 0 2px 6px var(--shadow);
+        z-index: 1000;
+      }
+
+      nav .logo {
+        font-size: 1.5rem;
+        font-weight: 600;
+        letter-spacing: 1px;
+      }
+
+      nav ul {
+        list-style: none;
+        display: flex;
+        gap: 40px;
+      }
+
+      nav ul li a {
+        color: white;
+        font-weight: 500;
+        position: relative;
+        transition: 0.3s;
+      }
+
+      nav ul li a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: -6px;
+        width: 0%;
+        height: 2px;
+        background: white;
+        transition: 0.3s;
+      }
+
+      nav ul li a:hover::after {
+        width: 100%;
+      }
+
+      /* ===== Hero Section ===== */
+      .hero {
+        background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        text-align: center;
+        padding: 0 20px;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+      }
+
+      .hero p {
+        font-size: 1.1rem;
+        color: var(--gray);
+        max-width: 650px;
+      }
+
+      .hero button {
+        padding: 15px 30px;
+        margin-top: 30px;
+        background: var(--primary);
+        color: white;
+        font-size: 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        border: none;
+        transition: 0.3s;
+      }
+
+      .hero button:hover {
+        background: var(--accent);
+        transform: translateY(-2px);
+      }
+
+      /* ===== About Section ===== */
+      .about {
+        background: white;
+        border-radius: 10px;
+        padding: 3rem;
+        box-shadow: 0 4px 10px var(--shadow);
+        max-width: 900px;
+        margin: 100px auto;
+      }
+
+      .about h2 {
+        text-align: center;
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+      }
+
+      .about p {
+        margin-bottom: 1rem;
+        text-align: justify;
+      }
+
+      /* ===== Features Section ===== */
+      .features {
+        text-align: center;
+        padding: 5rem 2rem;
+        background: #f0fdf4;
+      }
+
+      .features h2 {
+        color: var(--primary-dark);
+        margin-bottom: 2rem;
+      }
+
+      .features-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px;
+      }
+
+      .feature-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        width: 240px;
+        text-align: center;
+        box-shadow: 0 4px 10px var(--shadow);
+        transition: all 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 15px var(--shadow);
+      }
+
+      .feature-card h3 {
+        margin-bottom: 0.8rem;
+        color: var(--primary);
+      }
+
+      /* ===== Sign Up Section ===== */
+      .signin-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5rem 1rem;
+      }
+
+      .signin-box {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px var(--shadow);
+        width: 350px;
+        text-align: center;
+      }
+
+      .signin-box h2 {
+        color: var(--primary-dark);
+        margin-bottom: 1rem;
+      }
+
+      .signin-box input,
+      select {
+        width: 100%;
+        padding: 0.9rem;
+        margin: 0.7rem 0;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: border 0.3s;
+      }
+
+      .signin-box input:focus,
+      select:focus {
+        border-color: var(--primary);
+        outline: none;
+      }
+
+      .signin-box button {
+        width: 100%;
+        padding: 0.9rem;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 1rem;
+        font-weight: 500;
+        transition: 0.3s;
+      }
+
+      .signin-box button:hover {
+        background: var(--accent);
+      }
+
+      .signin-box p {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .signin-box a {
+        color: var(--primary-dark);
+        font-weight: bold;
+      }
+
+      /* ===== Footer ===== */
+      footer {
+        background: var(--primary-dark);
+        color: white;
+        text-align: center;
+        padding: 1rem;
+        font-size: 0.9rem;
+      }
+
+      footer .socials {
+        margin-top: 0.5rem;
+      }
+
+      footer .socials a {
+        margin: 0 10px;
+        color: white;
+        font-size: 1.2rem;
+        transition: 0.3s;
+      }
+
+      footer .socials a:hover {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav>
+      <div class="logo">💰 Expense Tracker</div>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#signin">Sign Up</a></li>
+        <li><a href="etw signup page.html">Login</a></li>
+      </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+      <h1>Smarter Way to Track Your Expenses</h1>
+      <p>
+        Take control of your finances with real-time tracking, insights, and
+        smart tools. Simplify your money management effortlessly.
+      </p>
+      <button onclick="location.href='#signin'">Get Started</button>
+    </section>
+
+    <!-- About Section -->
+    <section id="about">
+      <div class="about">
+        <h2>About Us</h2>
+        <p>
+          <b>Expense Tracker</b> helps individuals and families gain control of
+          their financial life. Our mission is to empower people to understand
+          spending habits and make informed financial decisions.
+        </p>
+        <p>
+          With built-in tools like <b>Expense Adder</b>, <b>Budget Analyzer</b>,
+          <b>Calculators</b>, and <b>Smart Charts</b>, we make finance
+          management simple, fast, and efficient.
+        </p>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+      <h2>Our Key Features</h2>
+      <div class="features-container">
+        <div class="feature-card">
+          <h3>✍️ Add Expenses</h3>
+          <p>Quickly record daily expenses with details and categories.</p>
+        </div>
+        <div class="feature-card">
+          <h3>📊 Charts & Insights</h3>
+          <p>Visualize spending trends with dynamic interactive graphs.</p>
+        </div>
+        <div class="feature-card">
+          <h3>💡 Smart Budgeting</h3>
+          <p>Set monthly goals and track your spending vs. savings.</p>
+        </div>
+        <div class="feature-card">
+          <h3>🧮 Built-in Calculators</h3>
+          <p>Use loan, EMI, interest, and budget calculators anytime.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sign Up Section -->
+    <section id="signin" class="signin-container">
+      <div class="signin-box">
+        <h2>Create Account</h2>
+        <form id="signupForm">
+          <input type="text" id="name" placeholder="Full Name" required />
+          <input type="text" id="username" placeholder="Username" required />
+          <input type="email" id="email" placeholder="Email Address" required />
+          <input type="number" id="age" placeholder="Age" required />
+
+          <select id="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Female">Female</option>
+            <option value="Male">Male</option>
+          </select>
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Password"
+            required
+          />
+          <input
+            type="password"
+            id="confirmPassword"
+            placeholder="Confirm Password"
+            required
+          />
+
+          <!-- ✅ Fixed: Removed onclick -->
+          <button type="submit">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="etw signup page.html">Login</a></p>
+      </div>
+    </section>
+
+    <script>
+      document
+        .getElementById("signupForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const name = document.getElementById("name").value.trim();
+          const username = document.getElementById("username").value.trim();
+          const email = document.getElementById("email").value.trim();
+          const age = document.getElementById("age").value.trim();
+          const gender = document.getElementById("gender").value;
+          const password = document.getElementById("password").value.trim();
+          const confirmPassword = document
+            .getElementById("confirmPassword")
+            .value.trim();
+
+          if (password !== confirmPassword) {
+            alert("❌ Passwords do not match!");
+            return;
+          }
+
+          try {
+            const response = await fetch("http://localhost:5000/users", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name,
+                username,
+                email,
+                age,
+                gender,
+                password,
+              }),
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+              // Save userId
+              localStorage.setItem("userId", data.userId);
+
+              // Fetch full user details to store in localStorage
+              const userRes = await fetch(
+                `http://localhost:5000/user/${data.userId}`
+              );
+              const userDetails = await userRes.json();
+              localStorage.setItem("userDetails", JSON.stringify(userDetails));
+
+              alert("✅ Account created successfully!");
+              window.location.href = "etw home page.html";
+            } else {
+              alert("❌ Signup failed: " + data.error);
+            }
+          } catch (err) {
+            console.error("Error:", err);
+            alert("❌ Could not connect to backend.");
+          }
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer>
+      <p>© 2025 Expense Tracker. All Rights Reserved.</p>
+      <div class="socials">
+        <a href="#">🌐</a>
+        <a href="#">📘</a>
+        <a href="#">🐦</a>
+        <a href="#">📸</a>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loan Calculator</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      /* --- Loan Calculator Styling --- */
+      .loan-calculator {
+        background: #ffffff;
+        margin: 50px auto;
+        padding: 30px;
+        width: 450px;
+        border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .loan-calculator h2 {
+        text-align: center;
+        color: #219653;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+
+      .bcb {
+        width: 100%;
+        padding: 12px;
+        background-color: #219653;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-bottom: 15px;
+      }
+
+      .bcb button:hover {
+        background-color: #1a7a44;
+      }
+
+      .result {
+        margin-top: 20px;
+        text-align: center;
+        background: #eafaf1;
+        padding: 20px;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+
+      #chartContainer {
+        margin-top: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="loan-calculator">
+        <h2>Loan Calculator</h2>
+        <label>Loan Amount (₹)</label>
+        <input type="number" id="loanAmount" placeholder="Enter loan amount" />
+
+        <label>Interest Rate (% per year)</label>
+        <input
+          type="number"
+          id="interestRate"
+          placeholder="Enter interest rate"
+        />
+
+        <label>Loan Tenure (years)</label>
+        <input type="number" id="loanTenure" placeholder="Enter loan tenure" />
+
+        <button class="bcb" onclick="calculateLoan()">Calculate</button>
+
+        <div class="result" id="result">
+          <p><strong>Monthly EMI:</strong> ₹0</p>
+          <p><strong>Total Interest:</strong> ₹0</p>
+          <p><strong>Total Payment:</strong> ₹0</p>
+        </div>
+
+        <div id="chartContainer">
+          <canvas id="loanChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let loanChart;
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      function calculateLoan() {
+        const principal = parseFloat(
+          document.getElementById("loanAmount").value
+        );
+        const annualRate = parseFloat(
+          document.getElementById("interestRate").value
+        );
+        const years = parseFloat(document.getElementById("loanTenure").value);
+
+        if (
+          isNaN(principal) ||
+          principal <= 0 ||
+          isNaN(annualRate) ||
+          annualRate <= 0 ||
+          isNaN(years) ||
+          years <= 0
+        ) {
+          alert("⚠️ Please enter valid positive values.");
+          return;
+        }
+
+        const monthlyRate = annualRate / 12 / 100;
+        const months = years * 12;
+
+        const emi =
+          (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
+          (Math.pow(1 + monthlyRate, months) - 1);
+        const totalPayment = emi * months;
+        const totalInterest = totalPayment - principal;
+
+        document.getElementById("result").innerHTML = `
+        <p><strong>Monthly EMI:</strong> ₹${emi.toFixed(2)}</p>
+        <p><strong>Total Interest:</strong> ₹${totalInterest.toFixed(2)}</p>
+        <p><strong>Total Payment:</strong> ₹${totalPayment.toFixed(2)}</p>
+      `;
+
+        // Draw Pie Chart: Principal vs Interest
+        const ctx = document.getElementById("loanChart").getContext("2d");
+        if (loanChart) loanChart.destroy();
+        loanChart = new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: ["Principal", "Interest"],
+            datasets: [
+              {
+                data: [principal, totalInterest],
+                backgroundColor: ["#219653", "#f4a261"],
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              legend: { position: "bottom" },
+              title: { display: true, text: "Principal vs Interest" },
+            },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

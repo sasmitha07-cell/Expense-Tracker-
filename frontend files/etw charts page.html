@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Charts - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .charts-container {
+        margin: 30px auto;
+        padding: 25px;
+        max-width: 900px;
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      h2 {
+        margin-bottom: 15px;
+      }
+
+      select {
+        padding: 8px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 1rem;
+        margin-bottom: 20px;
+      }
+
+      canvas {
+        width: 100%;
+        height: 400px;
+      }
+
+      .analysis-box {
+        margin-top: 25px;
+        padding: 20px;
+        background: linear-gradient(135deg, #a8edea, #fed6e3);
+        border-radius: 12px;
+        text-align: left;
+        color: #333;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .analysis-box h3 {
+        margin-bottom: 10px;
+        color: #2e7d32;
+      }
+
+      .analysis-box p {
+        margin: 8px 0;
+        font-size: 1rem;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html" class="active">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          class="icon"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="charts-container">
+        <h2>📈 Expense Analysis</h2>
+
+        <label for="timeRange">Select Time Range:</label>
+        <select id="timeRange" onchange="fetchAndRenderChart()">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+
+        <canvas id="expenseChart"></canvas>
+
+        <!-- Expense Analysis Section -->
+        <div class="analysis-box" id="analysisBox">
+          <h3>🧾 Summary</h3>
+          <p>Loading analysis...</p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const userId = localStorage.getItem("userId");
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      if (!userId) {
+        alert("Please login first!");
+        window.location.href = "index.html";
+      }
+
+      let chartInstance;
+
+      async function fetchAndRenderChart() {
+        const range = document.getElementById("timeRange").value;
+
+        try {
+          const res = await fetch(
+            `http://localhost:5000/expense-summary/${userId}?range=${range}`
+          );
+          const data = await res.json();
+
+          const ctx = document.getElementById("expenseChart").getContext("2d");
+
+          if (chartInstance) chartInstance.destroy();
+
+          chartInstance = new Chart(ctx, {
+            type: "bar",
+            data: {
+              labels: data.labels,
+              datasets: [
+                {
+                  label: `Expenses (${range})`,
+                  data: data.values,
+                  backgroundColor: "#2e7d32",
+                  borderRadius: 8,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: "Amount (₹)" },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text:
+                      range === "weekly"
+                        ? "Days"
+                        : range === "monthly"
+                        ? "Months"
+                        : "Years",
+                  },
+                },
+              },
+            },
+          });
+
+          updateAnalysis(data, range);
+        } catch (error) {
+          console.error("Error fetching expense summary:", error);
+          document.getElementById("analysisBox").innerHTML =
+            "<h3>🧾 Summary</h3><p>Could not load analysis data.</p>";
+        }
+      }
+
+      function updateAnalysis(data, range) {
+        if (!data.values || data.values.length === 0) {
+          document.getElementById("analysisBox").innerHTML =
+            "<h3>🧾 Summary</h3><p>No expense data found for this period.</p>";
+          return;
+        }
+
+        const total = data.values.reduce((a, b) => a + b, 0);
+        const maxExpense = Math.max(...data.values);
+        const maxLabel = data.labels[data.values.indexOf(maxExpense)];
+
+        const analysisBox = document.getElementById("analysisBox");
+        analysisBox.innerHTML = `
+          <h3>🧾 Summary</h3>
+          <p><strong>Total ${range} Expense:</strong> ₹${total.toLocaleString()}</p>
+          <p><strong>Highest Spending:</strong> ₹${maxExpense} on <b>${maxLabel}</b></p>
+          <p><strong>Average Spending:</strong> ₹${(
+            total / data.values.length
+          ).toFixed(2)}</p>
+          <p>💡 Tip: Try reviewing your spending in <b>${maxLabel}</b> to see if it can be optimized!</p>
+        `;
+      }
+
+      window.onload = fetchAndRenderChart;
+    </script>
+  </body>
+</html>

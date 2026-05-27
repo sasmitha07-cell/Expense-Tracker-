@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Budget Calculator</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .budget-calculator {
+        background: #ffffff;
+        margin: 50px auto;
+        padding: 30px;
+        width: 500px;
+        border-radius: 15px;
+        box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .budget-calculator h2 {
+        text-align: center;
+        color: #219653;
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        color: #333;
+        font-weight: 600;
+      }
+
+      input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+      }
+
+      .bcb {
+        width: 100%;
+        padding: 12px;
+        background-color: #219653;
+        color: white;
+        font-weight: bold;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1rem;
+        margin-bottom: 15px;
+      }
+
+      .bcb button:hover {
+        background-color: #1a7a44;
+      }
+
+      .result {
+        margin-top: 20px;
+        text-align: center;
+        background: #eafaf1;
+        padding: 15px;
+        border-radius: 10px;
+        font-weight: 600;
+      }
+
+      #chartContainer {
+        width: 100%;
+        margin-top: 20px;
+      }
+
+      .category-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .category-row input {
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤</button
+        ><button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <!-- Budget Calculator Section -->
+      <div class="budget-calculator">
+        <h2>Budget Calculator</h2>
+
+        <label>Total Income (₹)</label>
+        <input type="number" id="income" placeholder="Enter total income" />
+
+        <div id="categories">
+          <div class="category-row">
+            <input
+              type="text"
+              class="catName"
+              placeholder="Category Name"
+              value="Food"
+            />
+            <input type="number" class="catAmount" placeholder="Amount" />
+          </div>
+          <div class="category-row">
+            <input
+              type="text"
+              class="catName"
+              placeholder="Category Name"
+              value="Rent"
+            />
+            <input type="number" class="catAmount" placeholder="Amount" />
+          </div>
+          <div class="category-row">
+            <input
+              type="text"
+              class="catName"
+              placeholder="Category Name"
+              value="Transport"
+            />
+            <input type="number" class="catAmount" placeholder="Amount" />
+          </div>
+        </div>
+
+        <button class="bcb" onclick="addCategory()">➕ Add Category</button>
+
+        <label>Savings Goal (₹)</label>
+        <input
+          type="number"
+          id="savingsGoal"
+          placeholder="Enter your savings goal"
+        />
+
+        <button class="bcb" onclick="calculateBudget()">
+          Calculate Budget
+        </button>
+
+        <div class="result" id="result">
+          <p>Total Expenses: ₹0</p>
+          <p>Remaining Budget: ₹0</p>
+          <p>Percentage of Income Spent: 0%</p>
+          <p>Savings Goal Status: N/A</p>
+        </div>
+
+        <div id="chartContainer">
+          <canvas id="expenseChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let expenseChart;
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      function addCategory() {
+        const container = document.getElementById("categories");
+        const row = document.createElement("div");
+        row.classList.add("category-row");
+        row.innerHTML = `
+        <input type="text" class="catName" placeholder="Category Name">
+        <input type="number" class="catAmount" placeholder="Amount">
+      `;
+        container.appendChild(row);
+      }
+
+      function calculateBudget() {
+        const income = parseFloat(document.getElementById("income").value);
+        const savingsGoal =
+          parseFloat(document.getElementById("savingsGoal").value) || 0;
+
+        if (isNaN(income) || income <= 0) {
+          alert("⚠️ Please enter a valid income.");
+          return;
+        }
+
+        const names = document.querySelectorAll(".catName");
+        const amounts = document.querySelectorAll(".catAmount");
+
+        let totalExpenses = 0;
+        let categories = [];
+
+        for (let i = 0; i < names.length; i++) {
+          const name = names[i].value || `Category ${i + 1}`;
+          const amount = parseFloat(amounts[i].value) || 0;
+          totalExpenses += amount;
+          categories.push({ name, amount });
+        }
+
+        const remaining = income - totalExpenses;
+        const percentageSpent = (totalExpenses / income) * 100;
+
+        // Savings goal check
+        let savingsStatus = "Not set";
+        if (savingsGoal > 0) {
+          if (remaining >= savingsGoal) {
+            savingsStatus = `✅ Goal Met`;
+          } else {
+            savingsStatus = `⚠️ Goal Not Met`;
+          }
+        }
+
+        document.getElementById("result").innerHTML = `
+        <p><strong>Total Expenses:</strong> ₹${totalExpenses.toFixed(2)}</p>
+        <p><strong>Remaining Budget:</strong> ₹${remaining.toFixed(2)}</p>
+        <p><strong>Percentage of Income Spent:</strong> ${percentageSpent.toFixed(
+          2
+        )}%</p>
+        <p><strong>Savings Goal Status:</strong> ${savingsStatus}</p>
+      `;
+
+        // Pie Chart
+        const ctx = document.getElementById("expenseChart").getContext("2d");
+        if (expenseChart) expenseChart.destroy();
+        expenseChart = new Chart(ctx, {
+          type: "pie",
+          data: {
+            labels: categories.map((c) => c.name),
+            datasets: [
+              {
+                label: "Expenses",
+                data: categories.map((c) => c.amount),
+                backgroundColor: [
+                  "#219653",
+                  "#f4a261",
+                  "#e76f51",
+                  "#2a9d8f",
+                  "#e9c46a",
+                  "#264653",
+                  "#6a4c93",
+                  "#f28482",
+                  "#ffbe0b",
+                  "#8ac926",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            plugins: {
+              legend: { position: "bottom" },
+            },
+          },
+        });
+      }
+    </script>
+  </body>
+</html>

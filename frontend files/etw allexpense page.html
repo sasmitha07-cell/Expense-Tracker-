@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Expenses - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <style>
+      h1 {
+        color: #222;
+        margin: 25px 50px 20px;
+        font-size: 28px;
+      }
+
+      .category-section {
+        background: white;
+        border-radius: 12px;
+        margin-left: 50px;
+        margin-right: 50px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+      }
+
+      .category-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: bold;
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #2e7d32;
+      }
+
+      .category-total {
+        background: #2e7d32;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding: 12px 0;
+      }
+
+      .expense-item:last-child {
+        border-bottom: none;
+      }
+
+      .expense-info {
+        flex: 1;
+      }
+
+      .expense-title {
+        font-weight: 600;
+        font-size: 15px;
+      }
+
+      .expense-meta {
+        font-size: 13px;
+        color: #666;
+      }
+
+      .expense-amount {
+        font-weight: bold;
+        color: #2e7d32;
+        font-size: 16px;
+        text-align: right;
+        min-width: 80px;
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #777;
+        font-style: italic;
+        margin-top: 50px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          class="icon"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤</button
+        ><button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <h1>📑 All Expenses</h1>
+      <div id="expenseContainer" class="expense-container">
+        <p class="empty-state">Loading your expenses...</p>
+      </div>
+    </div>
+
+    <script>
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      async function displayAllExpenses() {
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          alert("Please login first!");
+          window.location.href = "index.html";
+          return;
+        }
+
+        const container = document.getElementById("expenseContainer");
+        container.innerHTML = `<p class="empty-state">Loading your expenses...</p>`;
+
+        try {
+          const res = await fetch(
+            `http://localhost:5000/get-expenses/${userId}`
+          );
+          const expenses = await res.json();
+
+          container.innerHTML = "";
+
+          if (!expenses || expenses.length === 0) {
+            container.innerHTML = `<p class="empty-state">No expenses found.</p>`;
+            return;
+          }
+
+          // ✅ Sort all expenses by date (latest first)
+          expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          // ✅ Group by category
+          const grouped = expenses.reduce((acc, exp) => {
+            if (!acc[exp.category]) acc[exp.category] = [];
+            acc[exp.category].push(exp);
+            return acc;
+          }, {});
+
+          // ✅ Define custom category order
+          const categoryOrder = [
+            "Food",
+            "Travel",
+            "Bills",
+            "Shopping",
+            "Others",
+          ];
+
+          categoryOrder.forEach((category) => {
+            if (!grouped[category]) return;
+
+            const catExpenses = grouped[category];
+
+            const categoryDiv = document.createElement("div");
+            categoryDiv.classList.add("category-section");
+
+            const total = catExpenses.reduce(
+              (sum, e) => sum + parseFloat(e.amount),
+              0
+            );
+
+            categoryDiv.innerHTML = `
+          <div class="category-title">
+            <span>${category}</span>
+            <span class="category-total">Total ₹${total.toFixed(2)}</span>
+          </div>
+        `;
+
+            // ✅ Sort each category’s expenses by date (latest first)
+            catExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            catExpenses.forEach((exp) => {
+              const expDiv = document.createElement("div");
+              expDiv.classList.add("expense-item");
+              expDiv.innerHTML = `
+            <div class="expense-info">
+              <div class="expense-title">${exp.title}</div>
+              <div class="expense-meta">${exp.date} ||  ${
+                exp.notes || "No notes"
+              }</div>
+            </div>
+            <div class="expense-amount">₹${parseFloat(exp.amount).toFixed(
+              2
+            )}</div>
+          `;
+              categoryDiv.appendChild(expDiv);
+            });
+
+            container.appendChild(categoryDiv);
+          });
+        } catch (err) {
+          console.error("Error loading expenses:", err);
+          container.innerHTML = `<p class="empty-state">⚠️ Could not load expenses. Check if backend is running.</p>`;
+        }
+      }
+
+      window.onload = displayAllExpenses;
+    </script>
+  </body>
+</html>

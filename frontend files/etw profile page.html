@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f7f9fb;
+        display: flex;
+        min-height: 100vh;
+        margin: 0;
+      }
+
+      /* Main content area */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background-color: #f7f9fb;
+      }
+
+      /* Profile Section */
+      .content {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      .profile-card {
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        max-width: 600px;
+        width: 100%;
+        padding: 2.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .profile-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      }
+
+      .profile-avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #56ab2f, #a8e063);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        color: white;
+        margin: 0 auto 20px;
+      }
+
+      .profile-card h2 {
+        color: #219653;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+      }
+
+      .username-tag {
+        color: #666;
+        font-size: 1rem;
+        margin-bottom: 25px;
+      }
+
+      .profile-details {
+        text-align: left;
+        line-height: 1.8;
+        color: #333;
+        padding: 0 20px;
+      }
+
+      .profile-details p {
+        margin: 10px 0;
+        font-size: 1.1rem;
+      }
+
+      .profile-details span {
+        font-weight: 600;
+        color: #219653;
+      }
+
+      /* Edit Button */
+      .edit-btn {
+        margin-top: 25px;
+        background-color: #219653;
+        color: #fff;
+        border: none;
+        margin-left: 20px;
+        padding: 10px 30px;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      .edit-btn:hover {
+        background-color: #197c44;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>💰 Tracker</h2>
+      <ul>
+        <li><a href="etw home page.html">🏠 Dashboard</a></li>
+        <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+        <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+        <li><a href="etw calculator.html">🧮 Calculator</a></li>
+        <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+        <li><a href="etw pay page.html">💳 Pay later</a></li>
+        <li><a href="etw charts page.html">📊 Charts</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Section -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          onclick="window.location.href='etw adder page.html'"
+          title="Add Expense"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="content">
+        <div class="profile-card" id="profileCard">
+          <div class="profile-avatar" id="profileAvatar">👤</div>
+          <h2 id="pName">Your Name</h2>
+          <div class="username-tag">@<span id="pUsername">username</span></div>
+
+          <div class="profile-details">
+            <p><span>Email:</span> <span id="pEmail"></span></p>
+            <p><span>Age:</span> <span id="pAge"></span></p>
+            <p><span>Gender:</span> <span id="pGender"></span></p>
+          </div>
+
+          <button class="edit-btn" onclick="editProfile()">
+            ✏️ Edit Profile
+          </button>
+          <button class="edit-btn" onclick="deleteAccount(userId)">
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const userId = localStorage.getItem("userId");
+
+      function logout() {
+        localStorage.removeItem("userId");
+        localStorage.removeItem("userDetails");
+        window.location.href = "etw signup page.html";
+      }
+
+      // Load Profile Data
+      async function loadProfile() {
+        if (!userId) {
+          document.getElementById("profileCard").innerHTML =
+            "<p>No user data found. Please sign up or log in first.</p>";
+          return;
+        }
+
+        try {
+          const res = await fetch(`http://localhost:5000/user/${userId}`);
+          const user = await res.json();
+
+          if (user.error) {
+            alert(user.error);
+            return;
+          }
+
+          // Save user details locally
+          localStorage.setItem("userDetails", JSON.stringify(user));
+
+          // Update UI
+          document.getElementById("pName").textContent = user.name;
+          document.getElementById("pUsername").textContent = user.username;
+          document.getElementById("pEmail").textContent = user.email;
+          document.getElementById("pAge").textContent = user.age;
+          document.getElementById("pGender").textContent = user.gender;
+
+          // Avatar → First letter of name
+          document.getElementById("profileAvatar").textContent = user.name
+            ? user.name.charAt(0).toUpperCase()
+            : "👤";
+        } catch (error) {
+          console.log("Error loading profile:", error);
+        }
+      }
+
+      // Delete user account
+      async function deleteAccount(userId) {
+        if (
+          !confirm("Are you sure you want to delete your account permanently?")
+        ) {
+          return;
+        }
+
+        try {
+          const res = await fetch(
+            `http://localhost:5000/delete-account/${userId}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          const data = await res.json();
+          alert(data.message);
+
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userDetails");
+
+          window.location.href = "etw signup page.html";
+        } catch (error) {
+          console.log("Error deleting account:", error);
+          alert("Failed to delete account. Try again.");
+        }
+      }
+
+      function editProfile() {
+        window.location.href = "etw edit profile.html";
+      }
+
+      // Load profile when page opens
+      window.onload = loadProfile;
+    </script>
+  </body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pay Later | Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #f2f6f5;
+        margin: 0;
+        display: flex;
+      }
+      /* Pay Later Container */
+      .container {
+        flex-grow: 1;
+        width: 100%;
+        max-width: 900px;
+        margin: 20px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      h2 {
+        text-align: center;
+        color: #222;
+        margin-bottom: 20px;
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+      textarea {
+        grid-column: 1 / span 2;
+      }
+      input,
+      textarea,
+      button {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 15px;
+      }
+      button {
+        background: #2e7d32;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: #1b5e20;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #2e7d32;
+        color: white;
+      }
+      .delete-btn,
+      .paid-btn {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        color: white;
+      }
+      .delete-btn {
+        background: #e53935;
+      }
+      .paid-btn {
+        background: #43a047;
+      }
+      .overdue {
+        background-color: #ffebee;
+        color: #d32f2f;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main">
+      <!-- Top Bar (right beside sidebar) -->
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          title="Profile"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <!-- Content Container -->
+      <div class="container">
+        <h2>💳 Pay Later Management</h2>
+
+        <form id="payForm">
+          <input type="text" id="toWhom" placeholder="To Whom" required />
+          <input type="number" id="amount" placeholder="Amount" required />
+          <input type="date" id="deadline" required />
+          <textarea id="note" placeholder="Notes (optional)"></textarea>
+          <button type="submit">Add Pay</button>
+        </form>
+
+        <table id="payTable">
+          <thead>
+            <tr>
+              <th>To Whom</th>
+              <th>Amount</th>
+              <th>Deadline</th>
+              <th>Days Left</th>
+              <th>Note</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script>
+      const payForm = document.getElementById("payForm");
+      const payTableBody = document.querySelector("#payTable tbody");
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      // ✅ Get logged-in user_id (saved after login)
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        alert("Please log in first!");
+        window.location.href = "etw login page.html";
+      }
+
+      // Fetch all Pay Later entries for this user
+      async function fetchPayList() {
+        try {
+          const res = await fetch(`http://localhost:5000/paylater/${userId}`);
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            renderTable(data);
+          } else {
+            payTableBody.innerHTML = `<tr><td colspan="6">No records found</td></tr>`;
+          }
+        } catch (err) {
+          console.error("Error loading Pay Later data:", err);
+        }
+      }
+
+      // Add new Pay Later entry
+      payForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const newPay = {
+          user_id: userId,
+          to_whom: document.getElementById("toWhom").value,
+          amount: document.getElementById("amount").value,
+          deadline: document.getElementById("deadline").value,
+          note: document.getElementById("note").value,
+        };
+
+        try {
+          const res = await fetch("http://localhost:5000/paylater", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newPay),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            payForm.reset();
+            fetchPayList(); // reload table
+          } else {
+            alert(data.error || "Failed to add Pay Later");
+          }
+        } catch (err) {
+          console.error("Error adding Pay Later:", err);
+        }
+      });
+
+      // Delete Pay Later
+      async function deletePay(id) {
+        if (!confirm("Delete this record?")) return;
+        try {
+          const res = await fetch(
+            `http://localhost:5000/paylater/${id}/${userId}`,
+            {
+              method: "DELETE",
+            }
+          );
+          const data = await res.json();
+          if (res.ok) {
+            fetchPayList();
+          } else {
+            alert(data.error);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Mark as Paid
+      async function markPaid(id) {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/paylater/mark-paid/${id}`,
+            {
+              method: "PUT",
+            }
+          );
+          const data = await res.json();
+          if (res.ok) {
+            fetchPayList();
+          } else {
+            alert(data.error);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Calculate days left
+      function calculateDaysLeft(deadline) {
+        const today = new Date();
+        const dueDate = new Date(deadline);
+        const diffTime = dueDate - today;
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+
+      // Render the Pay Later table
+      function renderTable(payList) {
+        payTableBody.innerHTML = "";
+        const today = new Date().toISOString().split("T")[0];
+
+        payList.forEach((pay) => {
+          const isOverdue = pay.deadline < today && pay.status !== "Paid";
+          const daysLeft = calculateDaysLeft(pay.deadline);
+
+          const row = document.createElement("tr");
+          if (isOverdue) row.className = "overdue";
+          else if (pay.status === "Paid") row.style.backgroundColor = "#e8f5e9";
+
+          let daysText = "-";
+          if (pay.status !== "Paid") {
+            if (daysLeft < 0) daysText = "Overdue";
+            else if (daysLeft === 0) daysText = "Today";
+            else daysText = `${daysLeft} day${daysLeft > 1 ? "s" : ""}`;
+          }
+
+          row.innerHTML = `
+        <td>${pay.to_whom}</td>
+        <td>₹${pay.amount}</td>
+        <td>${pay.deadline}</td>
+        <td>${daysText}</td>
+        <td>${pay.note || "-"}</td>
+        <td>
+          ${
+            pay.status === "Paid"
+              ? `<span style="color:green; font-weight:bold;">Paid ✅</span>`
+              : `<button class="paid-btn" onclick="markPaid(${pay.id})">Mark Paid</button>`
+          }
+          <button class="delete-btn" onclick="deletePay(${
+            pay.id
+          })">Delete</button>
+        </td>
+      `;
+          payTableBody.appendChild(row);
+        });
+      }
+
+      // Initial load
+      fetchPayList();
+    </script>
+  </body>
+</html>

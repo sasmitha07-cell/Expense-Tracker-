@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delete Expense - Expense Tracker</title>
+    <link rel="stylesheet" href="etw menu bar.css" />
+    <style>
+      .main h1 {
+        margin: 25px;
+        font-size: 26px;
+        color: #222;
+        font-weight: 700;
+      }
+
+      #expenseContainer {
+        padding: 0 25px 25px;
+        flex: 1;
+        overflow-y: auto;
+      }
+
+      .expense-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        transition: all 0.2s ease;
+      }
+
+      .expense-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+      }
+
+      .expense-info {
+        flex: 1;
+      }
+
+      .expense-title {
+        font-weight: 600;
+        font-size: 17px;
+        color: #2e7d32;
+        margin-bottom: 4px;
+      }
+
+      .expense-meta {
+        font-size: 13px;
+        color: #666;
+      }
+
+      .delete-btn {
+        background: #e53935;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+      }
+
+      .delete-btn:hover {
+        background: #b71c1c;
+        transform: scale(1.05);
+      }
+
+      .empty-state {
+        text-align: center;
+        color: #777;
+        font-style: italic;
+        font-size: 16px;
+        margin-top: 60px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <h2>💰 Tracker</h2>
+      <li><a href="etw home page.html">🏠 Dashboard</a></li>
+      <li><a href="etw adder page.html">⚡ Quick Add Expense</a></li>
+      <li><a href="etw delete page.html">❌ Delete Expense</a></li>
+      <li><a href="etw calculator.html">🧮 Calculator</a></li>
+      <li><a href="etw allexpense page.html">📑 All Expenses</a></li>
+      <li><a href="etw pay page.html">💳 Pay later</a></li>
+      <li><a href="etw charts page.html">📊 Charts</a></li>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main">
+      <div class="topbar">
+        <button
+          class="icon"
+          onclick="window.location.href='etw adder page.html'"
+        >
+          ➕
+        </button>
+        <button
+          class="icon"
+          onclick="window.location.href='etw profile page.html'"
+        >
+          👤
+        </button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+
+      <h1>❌ Delete Expenses</h1>
+      <div id="expenseContainer">
+        <p class="empty-state">Loading expenses...</p>
+      </div>
+    </div>
+
+    <script>
+      const userId = localStorage.getItem("userId");
+      function logout() {
+        localStorage.removeItem("user");
+        window.location.href = "etw signup page.html";
+      }
+      if (!userId) {
+        alert("Please login first!");
+        window.location.href = "index.html";
+      }
+
+      // ✅ Fetch and display user's expenses
+      async function displayExpenses() {
+        try {
+          const res = await fetch(
+            `http://localhost:5000/get-expenses/${userId}`
+          );
+          const expenses = await res.json();
+
+          const container = document.getElementById("expenseContainer");
+          container.innerHTML = "";
+
+          if (expenses.length === 0) {
+            container.innerHTML = `<p class="empty-state">No expenses found.</p>`;
+            return;
+          }
+
+          expenses.forEach((exp) => {
+            const div = document.createElement("div");
+            div.classList.add("expense-item");
+            div.innerHTML = `
+              <div class="expense-info">
+                <div class="expense-title">${exp.title} 
+                  <span style="font-size:13px;color:#999;">(${
+                    exp.category
+                  })</span>
+                </div>
+                <div class="expense-meta">${exp.date} | ₹${exp.amount} | ${
+              exp.notes || "No notes"
+            }</div>
+              </div>
+              <button class="delete-btn" onclick="deleteExpense(${
+                exp.expense_id
+              })">Delete</button>
+            `;
+            container.appendChild(div);
+          });
+        } catch (error) {
+          console.error("Error fetching expenses:", error);
+        }
+      }
+
+      // ✅ Delete an expense from DB
+      async function deleteExpense(expenseId) {
+        if (!confirm("Are you sure you want to delete this expense?")) return;
+
+        try {
+          const res = await fetch(
+            `http://localhost:5000/delete-expense/${userId}/${expenseId}`,
+            {
+              method: "DELETE",
+            }
+          );
+
+          const data = await res.json();
+          displayExpenses();
+        } catch (error) {
+          console.error("Error deleting expense:", error);
+          alert("Failed to delete expense.");
+        }
+      }
+
+      window.onload = displayExpenses;
+    </script>
+  </body>
+</html>
